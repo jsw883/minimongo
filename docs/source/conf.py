@@ -49,7 +49,7 @@ source_encoding = 'utf-8'
 master_doc = 'index'
 
 # General information about the project.
-project = 'atgmizz'
+project = 'atgminimongo'
 copyright = '2016, ESPN ATG'
 author = 'James Williams'
 
@@ -58,9 +58,9 @@ author = 'James Williams'
 # built documents.
 #
 # The short X.Y version.
-version = '0.1.0'
+version = '0.2.0'
 # The full version, including alpha/beta/rc tags.
-release = '0.1.0'
+release = '0.2.0'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -122,12 +122,12 @@ html_theme = 'sphinx_rtd_theme'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = '.static/img/ATG BLACK.png'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = ['images/favicon.ico']
+html_favicon = '.static/img/favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -245,6 +245,6 @@ latex_documents = [
 
 # Setup intersphinx mappings
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None)
-    'pymongo': ('http://api.mongodb.org/python/current/', None)
+    'python': ('https://docs.python.org/3', None),
+    'pymongo': ('http://api.mongodb.org/python/current/', None),
 }

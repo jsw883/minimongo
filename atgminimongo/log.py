@@ -14,7 +14,7 @@ import sys
 import colorama
 from colorama import Fore as FG, Back as BG, Style as ST
 
-from log4mongo.handlers import MongoHandler, MongoFormatter
+# from log4mongo.handlers import MongoHandler, MongoFormatter
 
 # -----------------------------------------------------------------------------
 # Constants

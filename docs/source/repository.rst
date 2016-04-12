@@ -1,11 +1,16 @@
-API
-===
+Repository
+==========
 
-.. currentmodule:: atgpdep
+.. currentmodule:: atgminimongo.repository
 
+AttrDictionary
+--------------
 
 .. autoclass:: AttrDictionary
       :members:
+
+Models
+------
 
 .. autoclass:: MetaModel
       :members:
