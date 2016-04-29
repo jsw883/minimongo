@@ -297,21 +297,17 @@ class Model(AttrDictionary, metaclass=MetaModel):
 
         if '$set' in update:
             for key in update['$set']:
-                path = key.split('.')
-                leaf = path.pop()
-                reduce(dict.__getitem__, path, self).__setitem__(
-                    leaf, update['$set'][key])
+                setitem_nested(self, key.split('.'), update['$set'][key])
 
         if '$unset' in update:
             for key in update['$unset']:
-                path = key.split('.')
-                leaf = path.pop()
-                reduce(dict.__getitem__, path, self).__delitem__(leaf)
+                delitem_nested(self, key.split('.'))
 
         if '$push' in update:
             for key in update['$push']:
-                path = key.split('.')
-                reduce(dict.__getitem__, path, self) + [update['$push'][key]]
+                item = getitem_nested(self, key.split('.'))
+                setitem_nested(
+                    self, key.split('.'), item + [update['$push'][key]])
 
         res = self.collection.update_one({'_id': self._id}, update)
         self._logger.info("Update %s succeeded {{'_id': ObjectID('%s')}} "

@@ -98,7 +98,10 @@ class TestModel(object):
             'c': {
                 'd': 2,
                 'e': 3,
-            }
+            },
+            'f': [
+                0
+            ]
         })
 
     def teardown(self):
@@ -160,10 +163,19 @@ class TestModel(object):
         # Save
         res = self.dummy.save()
         assert res.acknowledged
-        # Update
+        # Update (set)
         self.dummy.update({'$set': {'b': 4, 'c.e': 5}})
         assert self.dummy.b == 4
         assert self.dummy.c.e == 5
+        assert self.Dummy.find({'a': 0}) == self.dummy
+        # Update (unset)
+        self.dummy.update({'$unset': {'b': '', 'c.e': ''}})
+        assert 'b' not in self.dummy
+        assert 'e' not in self.dummy.c
+        assert self.Dummy.find({'a': 0}) == self.dummy
+        # Update (push)
+        self.dummy.update({'$push': {'f': 1}})
+        assert self.dummy.f[1] == 1
         assert self.Dummy.find({'a': 0}) == self.dummy
         # Error
         with pytest.raises(UpdateError):

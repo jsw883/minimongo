@@ -29,38 +29,6 @@ def merge(*args):
     return d
 
 
-def getitem_nested(d, keys):
-    """Gets a value in a nested dictionary given a list of keys to expand.
-    """
-
-    if len(keys) > 1:
-        key = keys.pop(0)
-        value = getitem_nested(d[key], keys)
-    else:
-        value = d[keys.pop(0)]
-
-    return value
-
-
-def setitem_nested(d, keys, value):
-    """Sets a value in a nested dictionary given a list of keys to expand.
-    """
-
-    if len(keys) > 1:
-        key = keys.pop(0)
-        if key in d and isinstance(d[key], dict):
-            setitem_nested(d[key], keys, value)
-        else:
-            d[key] = {}
-            setitem_nested(d[key], keys, value)
-    else:
-        key = keys.pop(0)
-        if isinstance(d, dict):
-            d[key] = value
-        else:
-            d[key] = {key: value}
-
-
 def subset(d, keys, keep=1):
     """Subset a dictionary based on a list of keys
     """
@@ -71,7 +39,106 @@ def subset(d, keys, keep=1):
         return {key: value for key, value in d.items() if key in keys}
 
 
-def deep_diff(a, b, ignore=[]):
+def hasitem_nested(d, keys):
+    """Checks a nested dictionary given a list of keys to expand.
+    """
+
+    if len(keys) > 1:
+        if keys[0] in d:
+            return hasitem_nested(d[keys[0]], keys[1:])
+        else:
+            return False
+    else:
+        return keys[0] in d
+
+
+def getitem_nested(d, keys):
+    """Gets a value in a nested dictionary given a list of keys to expand.
+    """
+
+    return reduce(dict.__getitem__, keys, d)
+
+
+def setitem_nested(d, keys, value):
+    """Sets a value in a nested dictionary given a list of keys to expand.
+    """
+
+    if len(keys) > 1:
+        key = keys[0]
+        if key in d and isinstance(d[key], dict):
+            setitem_nested(d[key], keys[1:], value)
+        else:
+            d[key] = {}
+            setitem_nested(d[key], keys[1:], value)
+    else:
+        key = keys[0]
+        if isinstance(d, dict):
+            d[key] = value
+        else:
+            d[key] = {key: value}
+
+    # reduce(dict.__getitem__, keys[:-1], d).__setitem__(keys[-1], value)
+
+
+def delitem_nested(d, keys):
+    """Deletes a value in a nested dictionary given a list of keys to expand.
+    """
+
+    reduce(dict.__getitem__, keys[:-1], d).__delitem__(keys[-1])
+
+
+def get_dict_from_array(array, conditions):
+    """Finds a dictionary in an array based on unqiue pairs of {key: value}.
+
+    The conditions argument is formatted:
+
+        {
+            key: value,
+            ...
+        }
+    """
+
+    # if isinstance(key, str):
+    #     d = [d for d in array if key in d and d[key] == value]
+    # else:
+    #     d = [d for d in array
+    #          if hasitem_nested(d, key) and getitem_nested(d, key) == value]
+
+    d = []
+    for item in array:
+        flags = []
+        for key, value in conditions.items():
+            key = key.split('.')
+            if len(key) == 1:
+                flag = key[0] in item and item[key[0]] == value
+            else:
+
+                flag = (hasitem_nested(item, key) and
+                        getitem_nested(item, key) == value)
+            flags.append(flag)
+        if all(flags):
+            d.append(item)
+
+    if d:
+        if len(d) == 1:
+            return d[0]
+        else:
+            raise ValueError(
+                "Multiple dicts found for key = {}, value = {}".format(
+                    keys, value))
+    else:
+        raise ValueError(
+            "Dict not found for key = {}, value = {}".format(key, value))
+
+
+def dict_from_dict_array(array, pivot_key):
+    """Converts an array of dictionaries to a dictionary based on a pivot key.
+    """
+
+    return {item[pivot_key]: item for item in array}
+
+
+def deep_diff(a, b, ignore=[], options={'deleted', 'updated', 'created'}):
     """Computes a minimal MongoDB update recursively.
 
         a = {'a': 0, 'b': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
@@ -89,13 +156,13 @@ def deep_diff(a, b, ignore=[]):
         a_keys = set(a.keys())
         b_keys = set(b.keys())
 
-        deleted = a_keys - b_keys
+        deleted = a_keys - b_keys if 'deleted' in options else set()
         if deleted:
             for key in deleted:
                 if key not in ignore:
                     setitem_nested(summary, ['deleted'] + keys + [key], a[key])
 
-        matched = a_keys & b_keys
+        matched = a_keys & b_keys if 'matched' in options else set()
         if matched:
             for key in matched:
                 if isinstance(a[key], dict) and isinstance(b[key], dict):
@@ -109,7 +176,7 @@ def deep_diff(a, b, ignore=[]):
                                 'new': b[key],
                             })
 
-        created = b_keys - a_keys
+        created = b_keys - a_keys if 'created' in options else set()
         if created:
             for key in created:
                 setitem_nested(summary, ['created'] + keys + [key], b[key])
@@ -210,3 +277,66 @@ def get_update(old, new, ignore=['_id']):
         update['$unset'] = unset  # Delete key
 
     return update
+
+
+# -----------------------------------------------------------------------------
+# Printing
+# -----------------------------------------------------------------------------
+
+class Pretty(object):
+    """Pretty printer with custom formatting.
+    """
+
+    def __init__(self, htchar="  ", lfchar="\n", indent=0):
+        self.htchar = htchar
+        self.lfchar = lfchar
+        self.indent = indent
+        self.types = {
+            object: self.__class__.object_formatter,
+            dict: self.__class__.dict_formatter,
+            list: self.__class__.list_formatter,
+            tuple: self.__class__.tuple_formatter,
+        }
+
+    def add_formatter(self, obj, formatter):
+        self.types[obj] = formatter
+
+    def get_formatter(self, obj):
+        for type_ in self.types:
+            if isinstance(obj, type_):
+                return self.types[type_]
+        return self.types[object]
+
+    def __call__(self, value, **args):
+        for key in args:
+            setattr(self, key, args[key])
+        return self.get_formatter(value)(self, value, self.indent)
+
+    def object_formatter(self, value, indent):
+        return repr(value)
+
+    def dict_formatter(self, value, indent):
+        items = []
+        for key in value:
+            s = (self.lfchar + self.htchar * (indent + 1) + repr(key) + ': ' +
+                 self.get_formatter(value[key])(self, value[key], indent + 1))
+            items.append(s)
+
+        return '{%s}' % (','.join(items) + self.lfchar + self.htchar * indent)
+
+    def list_formatter(self, value, indent):
+        items = [
+            self.lfchar + self.htchar * (indent + 1) +
+            self.get_formatter(item)(self, item, indent + 1)
+            for item in value
+        ]
+        return '[%s]' % (','.join(items) + self.lfchar + self.htchar * indent)
+
+    def tuple_formatter(self, value, indent):
+        items = [
+            self.lfchar + self.htchar * (indent + 1) +
+            self.get_formatter(value)(
+                self, item, indent + 1)
+            for item in value
+        ]
+        return '(%s)' % (','.join(items) + self.lfchar + self.htchar * indent)
