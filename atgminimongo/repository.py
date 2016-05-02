@@ -180,7 +180,7 @@ class AttrDictionary(dict):
         elif isinstance(obj, dict):
             return AttrDictionary(obj)
         elif isiterable(obj):
-            return [cls._ensure_attr_dictionary(obj) for obj in objects]
+            return [cls._ensure_attr_dictionary(child) for child in obj]
 
         return obj
 
