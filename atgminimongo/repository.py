@@ -109,12 +109,16 @@ class AttrDictionary(dict):
     """:class:`dict` wrapper allowing `.` access to members of the dictionary.
     """
 
+    # -------------------------------------------------------------------------
+    # Core
+    # -------------------------------------------------------------------------
+
     def __init__(self, *args, **kwargs):
         """Initializes and populates an :class:`AttrDictionary`.
 
         Args:
-            *args (dict): :class:`dict` objects to apply sequentially
-            **kwargs (dict): :class:`dict` to apply recursively
+            *args (dict): :class:`dict` objects to apply recursively
+            **kwargs (dict): :class:`dict` to apply sequentially
         """
 
         super(AttrDictionary, self).__init__(*args, **kwargs)
@@ -158,13 +162,38 @@ class AttrDictionary(dict):
         """Allow nested `.` access by recursive wrapping.
         """
 
-        if isinstance(value, dict):
-            value = AttrDictionary(value)
-        elif isiterable(value):
-            value = [
-                AttrDictionary(v) if isinstance(v, dict) else v for v in value]
+        value = self._ensure_attr_dictionary(value)
 
         return super(AttrDictionary, self).__setitem__(key, value)
+
+    # -------------------------------------------------------------------------
+    # Helpers
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def _ensure_attr_dictionary(cls, obj):
+        """
+        """
+
+        if isinstance(obj, AttrDictionary):
+            return obj
+        elif isinstance(obj, dict):
+            return AttrDictionary(obj)
+        elif isiterable(obj):
+            return cls._ensure_iterable_contains_attr_dictionary(obj)
+
+        return obj
+
+    @classmethod
+    def _ensure_iterable_contains_attr_dictionary(cls, objects):
+        """
+        """
+
+        converted = []
+        for obj in objects:
+            converted.append(cls._ensure_attr_dictionary(obj))
+
+        return converted
 
 
 # -----------------------------------------------------------------------------
@@ -182,6 +211,10 @@ class Model(AttrDictionary, metaclass=MetaModel):
     database to save, update, or delete itself).
     """
 
+    # -------------------------------------------------------------------------
+    # Core
+    # -------------------------------------------------------------------------
+
     def __init__(self, *args, **kwargs):
         """Initialize using :class:`AttrDictionary` (does not update MongoDB).
         """
@@ -194,6 +227,10 @@ class Model(AttrDictionary, metaclass=MetaModel):
 
         return '{}({})'.format(self.__class__.__name__,
                                super(Model, self).__str__())
+
+    # -------------------------------------------------------------------------
+    # Model functionality
+    # -------------------------------------------------------------------------
 
     @classmethod
     def insert_many(self, objects):
@@ -263,6 +300,10 @@ class Model(AttrDictionary, metaclass=MetaModel):
             self._logger.info("Query %s failed, object not found.", args[0])
             return None
 
+    # -------------------------------------------------------------------------
+    # Object functionality
+    # -------------------------------------------------------------------------
+
     def save(self):
         """Save to MongoDB, automatically inserting or updating.
         """
@@ -328,6 +369,10 @@ class Model(AttrDictionary, metaclass=MetaModel):
         self.__delattr__('_id')
         return res
 
+
+# -----------------------------------------------------------------------------
+# UpdateError
+# -----------------------------------------------------------------------------
 
 class UpdateError(Exception):
     """Exception raised for invalid update expressions (with update operators).
