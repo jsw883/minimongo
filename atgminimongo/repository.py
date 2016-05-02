@@ -172,7 +172,7 @@ class AttrDictionary(dict):
 
     @classmethod
     def _ensure_attr_dictionary(cls, obj):
-        """
+        """Ensure object has AttrDictionary functionality recursively.
         """
 
         if isinstance(obj, AttrDictionary):
@@ -180,20 +180,9 @@ class AttrDictionary(dict):
         elif isinstance(obj, dict):
             return AttrDictionary(obj)
         elif isiterable(obj):
-            return cls._ensure_iterable_contains_attr_dictionary(obj)
+            return [cls._ensure_attr_dictionary(obj) for obj in objects]
 
         return obj
-
-    @classmethod
-    def _ensure_iterable_contains_attr_dictionary(cls, objects):
-        """
-        """
-
-        converted = []
-        for obj in objects:
-            converted.append(cls._ensure_attr_dictionary(obj))
-
-        return converted
 
 
 # -----------------------------------------------------------------------------
