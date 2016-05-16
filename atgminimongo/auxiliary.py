@@ -9,6 +9,8 @@ Created on Mar 15, 2016
 from copy import deepcopy
 from functools import reduce  # Python 3
 
+from operator import xor
+
 
 # -----------------------------------------------------------------------------
 # Dictionaries
@@ -30,10 +32,10 @@ def merge(*args):
 
 
 def subset(d, keys, keep=1):
-    """Subset a dictionary based on a list of keys
+    """Subset a dictionary based on a list of keys.
     """
 
-    if keep < 1:
+    if keep == 0:
         return {key: value for key, value in d.items() if key not in keys}
     else:
         return {key: value for key, value in d.items() if key in keys}
@@ -138,7 +140,8 @@ def dict_from_dict_array(array, pivot_key):
     return {item[pivot_key]: item for item in array}
 
 
-def deep_diff(a, b, ignore=[], options={'deleted', 'updated', 'created'}):
+def deep_diff(a, b, grab=[], options={'deleted', 'updated', 'created'},
+              keep=0):
     """Computes a minimal MongoDB update recursively.
 
         a = {'a': 0, 'b': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
@@ -159,16 +162,17 @@ def deep_diff(a, b, ignore=[], options={'deleted', 'updated', 'created'}):
         deleted = a_keys - b_keys if 'deleted' in options else set()
         if deleted:
             for key in deleted:
-                if key not in ignore:
+                if xor(keep, key not in grab):
                     setitem_nested(summary, ['deleted'] + keys + [key], a[key])
 
-        matched = a_keys & b_keys if 'matched' in options else set()
+        matched = a_keys & b_keys
         if matched:
             for key in matched:
                 if isinstance(a[key], dict) and isinstance(b[key], dict):
                     diff(a[key], b[key], keys + [key])
                 else:
-                    if a[key] != b[key]:
+                    if ('updated' in options and xor(keep, key not in grab) and
+                            a[key] != b[key]):
                         setitem_nested(
                             summary, ['updated'] + keys + [key],
                             {
@@ -223,7 +227,9 @@ def get_uri(config):
     return host_uri
 
 
-def get_update(old, new, ignore=['_id']):
+def get_update(
+        old, new, grab=['_id'], options={'deleted', 'updated', 'created'},
+        keep=0):
     """Computes a minimal MongoDB update recursively.
 
     Note that only the '$set' and '$unset' update operators are considered.
@@ -244,10 +250,10 @@ def get_update(old, new, ignore=['_id']):
         old_keys = set(old.keys())
         new_keys = set(new.keys())
 
-        deleted = old_keys - new_keys
+        deleted = old_keys - new_keys if 'deleted' in options else set()
         if deleted:
             for key in deleted:
-                if key not in ignore:
+                if xor(keep, key not in grab):
                     root_key = root + '.' + key if root else key
                     unset[root_key] = ''
 
@@ -258,10 +264,11 @@ def get_update(old, new, ignore=['_id']):
                 if isinstance(old[key], dict) and isinstance(new[key], dict):
                     diff(old[key], new[key], root_key)
                 else:
-                    if old[key] != new[key]:
+                    if ('updated' in options and xor(keep, key not in grab) and
+                            old[key] != new[key]):
                         upset[root_key] = new[key]
 
-        created = new_keys - old_keys
+        created = new_keys - old_keys if 'created' in options else set()
         if created:
             for key in created:
                 root_key = root + '.' + key if root else key
