@@ -324,7 +324,7 @@ class Pretty(object):
 
     def dict_formatter(self, value, indent):
         items = []
-        for key in value:
+        for key in sorted(value.keys()):
             s = (self.lfchar + self.htchar * (indent + 1) + repr(key) + ': ' +
                  self.get_formatter(value[key])(self, value[key], indent + 1))
             items.append(s)
@@ -347,3 +347,12 @@ class Pretty(object):
             for item in value
         ]
         return '(%s)' % (','.join(items) + self.lfchar + self.htchar * indent)
+
+
+def sphinx_pretty(obj, name='obj'):
+    """Pretty dict embedding for Spinx (HTML).
+    """
+
+    pretty = Pretty(indent=2)
+    print('.. code-block:: Javascript\n\n    {} = {}\n\n'.format(
+        name, pretty(obj)))

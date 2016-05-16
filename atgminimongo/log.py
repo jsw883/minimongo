@@ -2,10 +2,6 @@
 Defines a root logger which can be imported by scripts using this package, and
 configurations for color stderr formatting. Currently, modules request loggers
 locally, but they could import the root logger directly.
-
-Created on Mar 11, 2016
-
-@author: James Williams
 """
 
 import logging
@@ -23,24 +19,42 @@ from colorama import Fore as FG, Back as BG, Style as ST
 # Initialize colorama to obtain accurate platform specific escape characters
 colorama.init()
 
+#: Default colors for :class:`ColoredFormatter` (using :mod:`colorama`)
+COLORS = {
+    'WARNING': FG.YELLOW,
+    'INFO': FG.WHITE,
+    'DEBUG': FG.BLUE,
+    'CRITICAL': FG.CYAN,
+    'ERROR': FG.RED
+}
+
 
 # -----------------------------------------------------------------------------
 # ColoredFormatter
 # -----------------------------------------------------------------------------
 
 class ColoredFormatter(logging.Formatter):
-    """Logger color formatter for changing color according to level name.
+    """Color formatter for logging.
     """
 
-    def format(self, record):  # @ReservedAssignment
+    def __init__(self, *args, **kwargs):
+        """Initializes a new :class:`ColoredFormatter` with colors specified.
+
+        Args:
+            colors (dict): dictionary mapping logging level to color
+                (default: :data:`COLORS`)
+        """
+
+        # Allows non keyword arguments to be passed
+        colors = kwargs.pop('colors', COLORS)
+
+        super().__init__(*args, **kwargs)
+
+        self.colors = colors
+
+    def format(self, record):
         """Format record according to level name (standard).
         """
-        colors = {
-            'WARNING': FG.YELLOW,
-            'INFO': FG.WHITE,
-            'DEBUG': FG.BLUE,
-            'CRITICAL': FG.CYAN,
-            'ERROR': FG.RED}
 
         name = record.levelname
         if name in colors:
@@ -64,6 +78,8 @@ file_formatter = logging.Formatter(
     ' - %(levelname)s: %(message)s',
     datefmt='%m-%d-%Y %H:%M:%S')
 
-# Configure root logger to be used or inherited
+# Module logger that can be reconfigured and used globally
 logger = logging.getLogger()
+
+# Configure root logger to be used or inherited
 logger.setLevel(logging.DEBUG)

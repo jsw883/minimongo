@@ -1,9 +1,9 @@
 """
 Classes and methods for interfacing with MongoDB.
 
-Created on Mar 15, 2016
-
-@author: James Williams
+Contains a lightweight ORM for interfacing efficiently and easily with MongoDB.
+The binding is done using :mod:`pymongo` under the hood, and provides recursive
+attribute style indexing using :class:'AttrDictionary'.
 """
 
 from .auxiliary import *
@@ -19,6 +19,7 @@ from pymongo import IndexModel, TEXT, ASCENDING, DESCENDING
 # Constants
 # -----------------------------------------------------------------------------
 
+# Default config for MongoDB
 DEFAULT_CONFIG = {
     'host': '127.0.0.1',
     'port': 27017,
@@ -26,7 +27,7 @@ DEFAULT_CONFIG = {
     'password': None,
     'database': None,
     'collection': None,
-    'indexes': []  # List of pymongo IndexModel(s)
+    'indexes': []  # List of pymongo IndexModel
 }
 
 
@@ -37,12 +38,10 @@ DEFAULT_CONFIG = {
 class MetaModel(type):
     """Model metaclass for configuring and maintaining connection to Mongo DB.
 
-    Note that a we use a metaclass to actually configure the database mapping
+    Note that the metaclass is used to actually configure the database mapping
     when a model class is defined (or immediately before it is instantiated),
-    as the *class* itself represents an ORM.
-
-    Connection pooling is now handled automatically by :mod:`pymongo.pymongo`,
-    which keeps things straightforward.
+    as the *class* itself represents an ORM. Connection pooling is now handled
+    automatically by :mod:`pymongo`, which keeps things straightforward.
     """
 
     def __str__(cls):
@@ -117,8 +116,8 @@ class AttrDictionary(dict):
         """Initializes and populates an :class:`AttrDictionary`.
 
         Args:
-            *args (dict): :class:`dict` objects to apply recursively
-            **kwargs (dict): :class:`dict` to apply sequentially
+            *args (dict): dictionary objects to apply recursively
+            **kwargs: keyword arguments to apply sequentially
         """
 
         super(AttrDictionary, self).__init__(*args, **kwargs)
@@ -194,10 +193,8 @@ class Model(AttrDictionary, metaclass=MetaModel):
 
     :class:`Model` inherits from :class:`AttrDictionary` to allow `.` access
     to members of the dictionary, giving a straightforward ORM. The underlying
-    :class:`pymongo.Collection` can also be accessed directly, exposing the
-    entirety of :mod:`pymongo.pymongo` functionality, but this would only be
-    appropriate as a class method (as each object should only manipulate the
-    database to save, update, or delete itself).
+    :class:`pymongo.collection.Collection` can also be accessed directly,
+    exposing the entirety of :mod:`pymongo` functionality if required.
     """
 
     # -------------------------------------------------------------------------
@@ -225,7 +222,7 @@ class Model(AttrDictionary, metaclass=MetaModel):
     def insert_many(self, objects):
         """Create and insert many objects into MongoDB.
 
-        Objects can be a :class:`python.dict` or :class:`AttrDictionary`, and
+        Objects can be a :class:`dict` or :class:`AttrDictionary`, and
         are returned as :class:`Model` instances, with the necessary bindings
         to MongoDB.
         """
@@ -243,7 +240,7 @@ class Model(AttrDictionary, metaclass=MetaModel):
     def insert(self, obj):
         """Create and insert one object into MongoDB.
 
-        Objects can be a :class:`python.dict` or :class:`AttrDictionary`, and
+        Objects can be a :class:`dict` or :class:`AttrDictionary`, and
         are returned as :class:`Model` instances, with the necessary bindings
         to MongoDB.
         """

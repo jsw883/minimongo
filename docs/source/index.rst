@@ -15,6 +15,7 @@ Index
 .. toctree::
 
    repository
+   log
 
 * :ref:`genindex`
 

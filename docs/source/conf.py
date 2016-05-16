@@ -12,10 +12,59 @@
 import sys
 import os
 
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
+from sphinx.util.compat import Directive
+from docutils import nodes, statemachine
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../../atgminimongo'))
+
+
+# -----------------------------------------------------------------------------
+# Exec directive
+# -----------------------------------------------------------------------------
+
+class ExecDirective(Directive):
+    """Execute python code and insert the output into the document dynamically.
+    """
+
+    has_content = True
+
+    def run(self):
+        oldStdout, sys.stdout = sys.stdout, StringIO()
+
+        tab_width = self.options.get(
+            'tab-width', self.state.document.settings.tab_width)
+        source = self.state_machine.input_lines.source(
+            self.lineno - self.state_machine.input_offset - 1)
+
+        try:
+            exec('\n'.join(self.content))
+            text = sys.stdout.getvalue()
+            lines = statemachine.string2lines(
+                text, tab_width, convert_whitespace=True)
+            self.state_machine.insert_input(lines, source)
+            return []
+        except Exception:
+            return [
+                nodes.error(
+                    None, nodes.paragraph(
+                        text="Unable to execute python code at {}:{}:".format(
+                            (os.path.basename(source), self.lineno),
+                            nodes.paragraph(text=str(sys.exc_info()[1])))))]
+        finally:
+            sys.stdout = oldStdout
+
+
+def setup(app):
+    app.add_directive('exec', ExecDirective)
+
 
 # -----------------------------------------------------------------------------
 # General config
@@ -197,54 +246,13 @@ html_last_updated_fmt = '%b %d, %Y'
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'atgminimongodocs'
 
+
 # -----------------------------------------------------------------------------
-# LaTeX config
+# Mapping
 # -----------------------------------------------------------------------------
-
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #'papersize': 'letterpaper',
-
-    # The font size ('10pt', '11pt' or '12pt').
-    #'pointsize': '10pt',
-
-    # Additional stuff for the LaTeX preamble.
-    #'preamble': '',
-
-    # Latex figure (float) alignment
-    #'figure_align': 'htbp',
-}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, 'atgminimongo.tex', 'atgminimongo Documentation',
-     'James Williams', 'manual'),
-]
-
-# The name of an image file (relative to this directory) to place at the top of
-# the title page.
-#latex_logo = None
-
-# For "manual" documents, if this is true, then toplevel headings are parts,
-# not chapters.
-#latex_use_parts = False
-
-# If true, show page references after internal links.
-#latex_show_pagerefs = False
-
-# If true, show URL addresses after external links.
-#latex_show_urls = False
-
-# Documents to append as an appendix to all manuals.
-#latex_appendices = []
-
-# If false, no module index is generated.
-#latex_domain_indices = True
 
 # Setup intersphinx mappings
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'pymongo': ('http://api.mongodb.org/python/current/', None),
+    'pymongo': ('http://api.mongodb.org/python/current', None),
 }
