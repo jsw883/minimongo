@@ -61,7 +61,7 @@ setup(
     version='0.2.0',
     description='Lightweight ORM for MongoDB.',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
         'Programming Language :: Python :: 3.5'
