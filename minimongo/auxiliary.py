@@ -39,7 +39,6 @@ def subset(d, keys, keep=1):
     Args:
         keys (list): keys
         keep (int): binary flag to keep (1) or remove (0) the keys specified
-
     """
 
     if keep == 0:
