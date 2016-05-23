@@ -29,9 +29,9 @@ Get the latest version of Python 3 provided by Ubuntu 14.04.
    echo -e "\n# virtualenv config\nexport WORKON_HOME=$HOME/.virtualenvs\nsource /usr/local/bin/virtualenvwrapper.sh\n" >> ~/.bashrc
 
    # Setup a new virtual environment for Python 3
-   mkvirtualenv -p python3 atg
+   mkvirtualenv -p python3 dev
    deactivate
-   workon atg
+   workon dev
 
 Package
 -------
@@ -40,8 +40,8 @@ Clone the repository into a convenient directory.
 
 .. code-block:: bash
 
-   git clone git@code.espn.com:ATG/atg-minimongo.git atg-minimongo
-   cd atg-minimongo
+   git clone git@code.espn.com:ATG/minimongo.git minimongo
+   cd minimongo
 
 Setup and expose the package with :code:`python setup.py develop`.
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# atgminimongo documentation build configuration file, created by
+# minimongo documentation build configuration file, created by
 # sphinx-quickstart on Mon Mar 14 11:48:02 2016.
 #
 # This file is execfile()d with the current directory set to its containing
@@ -23,7 +23,7 @@ from docutils import nodes, statemachine
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../../atgminimongo'))
+sys.path.insert(0, os.path.abspath('../../minimongo'))
 
 
 # -----------------------------------------------------------------------------
@@ -98,7 +98,7 @@ source_encoding = 'utf-8'
 master_doc = 'index'
 
 # General information about the project.
-project = 'atgminimongo'
+project = 'minimongo'
 copyright = '2016, ESPN ATG'
 author = 'James Williams'
 
@@ -244,7 +244,7 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'atgminimongodocs'
+htmlhelp_basename = 'minimongodocs'
 
 
 # -----------------------------------------------------------------------------

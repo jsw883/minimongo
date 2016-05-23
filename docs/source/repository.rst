@@ -1,7 +1,7 @@
 Repository
 ==========
 
-.. automodule:: atgminimongo.repository
+.. automodule:: minimongo.repository
 
 Constants
 ---------
@@ -11,8 +11,8 @@ Constants
    Default config for MongoDB. The ``'indexes'`` field is a list of :class:`pymongo.operations.IndexModel`.
 
    .. exec::
-       from atgminimongo.auxiliary import sphinx_pretty
-       from atgminimongo.repository import DEFAULT_CONFIG
+       from minimongo.auxiliary import sphinx_pretty
+       from minimongo.repository import DEFAULT_CONFIG
        sphinx_pretty(DEFAULT_CONFIG, 'DEFAULT_CONFIG')
 
 AttrDictionary

@@ -1,5 +1,5 @@
-atg-minimongo
-=============
+minimongo
+=========
 
 This repository implements a lightweight ORM for interfacing efficiently and easily with MongoDB. The binding is done using `pymongo` under the hood, and allows recursive attribute style indexing for convenience.
 
@@ -31,17 +31,17 @@ sudo pip install virtualenvwrapper
 echo -e "\n# virtualenv config\nexport WORKON_HOME=$HOME/.virtualenvs\nsource /usr/local/bin/virtualenvwrapper.sh\n" >> ~/.bashrc
 
 # Setup a new virtual environment for Python 3
-mkvirtualenv -p python3 atg
+mkvirtualenv -p python3 dev
 deactivate
-workon atg
+workon dev
 ```
 
 #### Package ####
 
 Clone the repository into a convenient directory.
 ```
-git clone git@code.espn.com:ATG/atg-minimongo.git atg-minimongo
-cd atg-minimongo
+git clone git@code.espn.com:ATG/minimongo.git minimongo
+cd minimongo
 ```
 
 Setup and expose the package with `python setup.py develop`.
@@ -62,10 +62,10 @@ This runs the tests in the [tests](./tests) directory, ensuring that binding wor
 
 ```js
 db.createUser({
-    'user': 'atgminimongoTester',
-    'pwd': 'atgminimongoTester',
+    'user': 'minimongoTester',
+    'pwd': 'minimongoTester',
     'roles':[
-        {'role': 'readWrite', 'db': 'atgminimongo_testing'}
+        {'role': 'readWrite', 'db': 'minimongo_testing'}
     ]
 })
 ```

@@ -57,7 +57,7 @@ class PyTestCommand(TestCommand):
 # Setup config
 setup(
     # Package name, version, description, classifiers, and keywords
-    name='atgminimongo',
+    name='minimongo',
     version='0.2.0',
     description='Lightweight ORM for MongoDB.',
     classifiers=[

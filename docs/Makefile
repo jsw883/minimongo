@@ -7,12 +7,12 @@ SPHINXBUILD     = sphinx-build
 PAPER           =
 BUILDROOT       = build
 DEPLOYROOT      = ~/deploy
-DEPLOYDIRECTORY = $(DEPLOYROOT)/docs/atgminimongo
+DEPLOYDIRECTORY = $(DEPLOYROOT)/docs/minimongo
 
 RSYNCDELETEOPT  = --delete
-SSHCONFIG       = atg-analytics-docs
+SSHCONFIG       = docs
 REMOTEROOT      = ~/deploy
-REMOTEDIRECTORY = $(REMOTEROOT)/docs/atgminimongo
+REMOTEDIRECTORY = $(REMOTEROOT)/docs/minimongo
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)

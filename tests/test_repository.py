@@ -4,10 +4,10 @@ Tests classes and methods for interfacing with MongoDB.
 Prior to testing, add the following user to MongoDB:
 
     db.createUser({
-        'user': 'atgminimongoTester',
-        'pwd': 'atgminimongoTester',
+        'user': 'minimongoTester',
+        'pwd': 'minimongoTester',
         'roles':[
-            {'role': 'readWrite', 'db': 'atgminimongo_testing'}
+            {'role': 'readWrite', 'db': 'minimongo_testing'}
         ]
     })
 
@@ -18,7 +18,7 @@ Created on Mar 21, 2015
 
 import pytest
 
-from atgminimongo.repository import MetaModel, AttrDictionary, Model, \
+from minimongo.repository import MetaModel, AttrDictionary, Model, \
     UpdateError
 
 
@@ -82,9 +82,9 @@ class TestModel(object):
         config = {
             'host': '127.0.0.1',
             'port': 27017,
-            'username': 'atgminimongoTester',
-            'password': 'atgminimongoTester',
-            'database': 'atgminimongo_testing',
+            'username': 'minimongoTester',
+            'password': 'minimongoTester',
+            'database': 'minimongo_testing',
             'collection': 'dummies',
             'indices': (),
             'auto_index': True,
@@ -110,7 +110,7 @@ class TestModel(object):
     def test_init(self):
         # Test connection config
         assert self.Dummy.connection.address == ('127.0.0.1', 27017)
-        assert self.Dummy.database.name == 'atgminimongo_testing'
+        assert self.Dummy.database.name == 'minimongo_testing'
         assert self.Dummy.collection.name == 'dummies'
         assert self.Dummy.connection.server_info()['ok'] == 1
         # Test class

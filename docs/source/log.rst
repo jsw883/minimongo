@@ -1,7 +1,7 @@
 Logging
 =======
 
-.. automodule:: atgminimongo.log
+.. automodule:: minimongo.log
 
 Constants
 ---------
@@ -11,8 +11,8 @@ Constants
    
 
    .. exec::
-       from atgminimongo.auxiliary import sphinx_pretty
-       from atgminimongo.log import COLORS
+       from minimongo.auxiliary import sphinx_pretty
+       from minimongo.log import COLORS
        sphinx_pretty(COLORS, 'COLORS')
 
 .. data:: stderr_formatter
