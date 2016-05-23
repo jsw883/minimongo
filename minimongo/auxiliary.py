@@ -1,9 +1,5 @@
 """
 Auxiliary functions for ORM.
-
-Created on Mar 15, 2016
-
-@author: James Williams
 """
 
 from copy import deepcopy
@@ -22,6 +18,9 @@ def merge(*args):
     Args:
         *args (dict): arbitrary number of dictionaries
 
+    Returns:
+        dict: merged dictionary
+
     Note that order matters as the dictionaries are merged by updating a new
     dictionary iteratively, and if the dictionary keys are not unique across
     args, then the last dictionary key value pair will be used.
@@ -39,6 +38,9 @@ def subset(d, keys, keep=1):
     Args:
         keys (list): keys
         keep (int): binary flag to keep (1) or remove (0) the keys specified
+
+    Returns:
+        dict: subsetted dictionary
     """
 
     if keep == 0:
@@ -52,6 +54,9 @@ def hasitem_nested(d, keys):
 
     Args:
         keys (list): keys
+
+    Returns:
+        bool: if item exists
     """
 
     if len(keys) > 1:
@@ -70,7 +75,7 @@ def getitem_nested(d, keys):
         keys (list): ordered list of keys to expand
 
     Returns:
-        value (object): value to get from key
+        object: value to get from key
     """
 
     return reduce(dict.__getitem__, keys, d)
@@ -119,6 +124,9 @@ def deep_diff(a, b, options={'deleted', 'updated', 'created'}, grab=[],
         options (set): specifies the categories of difference to find
         grab (list): keys
         keep (int): binary flag to keep (1) or ignore (0) the keys specified
+
+    Returns:
+        dict: difference summary
 
     Example::
 
@@ -178,6 +186,9 @@ def isiterable(iterable, ignorestr=True):
     Args:
         iterable (object): object to check
         ignorestr (bool): boolean flag to ignore strings
+
+    Returns:
+        bool: is iterable
     """
 
     flag = hasattr(iterable, '__getitem__') or hasattr(iterable, '__iter__')
@@ -196,6 +207,9 @@ def get_uri(config):
 
     Args:
         config (dict): config dictionary specying URI
+
+    Returns:
+        str: complete URI
     """
 
     # Check if complete URI is already specified
@@ -223,6 +237,9 @@ def get_update(
         options (set): specifies the categories of difference to find
         grab (list): keys
         keep (int): binary flag to keep (1) or ignore (0) the keys specified
+
+    Returns:
+        dict: update summary
 
     Example::
 
