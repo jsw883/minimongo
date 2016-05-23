@@ -19,12 +19,14 @@ from operator import xor
 def merge(*args):
     """Merges an arbitrary number of dictionaries sequentially.
 
+    Args:
+        *args (dict): arbitrary number of dictionaries
+
     Note that order matters as the dictionaries are merged by updating a new
     dictionary iteratively, and if the dictionary keys are not unique across
     args, then the last dictionary key value pair will be used.
     """
 
-    # Sequentially merge dictionaries into a new dictionary
     d = {}
     for arg in args:
         d.update(arg)
@@ -33,6 +35,11 @@ def merge(*args):
 
 def subset(d, keys, keep=1):
     """Subset a dictionary based on a list of keys.
+
+    Args:
+        keys (list): keys
+        keep (int): binary flag to keep (1) or remove (0) the keys specified
+
     """
 
     if keep == 0:
@@ -43,6 +50,9 @@ def subset(d, keys, keep=1):
 
 def hasitem_nested(d, keys):
     """Checks a nested dictionary given a list of keys to expand.
+
+    Args:
+        keys (list): keys
     """
 
     if len(keys) > 1:
@@ -56,6 +66,12 @@ def hasitem_nested(d, keys):
 
 def getitem_nested(d, keys):
     """Gets a value in a nested dictionary given a list of keys to expand.
+
+    Args:
+        keys (list): ordered list of keys to expand
+
+    Returns:
+        value (object): value to get from key
     """
 
     return reduce(dict.__getitem__, keys, d)
@@ -63,6 +79,10 @@ def getitem_nested(d, keys):
 
 def setitem_nested(d, keys, value):
     """Sets a value in a nested dictionary given a list of keys to expand.
+
+    Args:
+        keys (list): ordered list of keys to expand
+        value (object): value to set at key
     """
 
     if len(keys) > 1:
@@ -79,70 +99,29 @@ def setitem_nested(d, keys, value):
         else:
             d[key] = {key: value}
 
-    # reduce(dict.__getitem__, keys[:-1], d).__setitem__(keys[-1], value)
-
 
 def delitem_nested(d, keys):
     """Deletes a value in a nested dictionary given a list of keys to expand.
+
+    Args:
+        keys (list): ordered list of keys to expand
     """
 
     reduce(dict.__getitem__, keys[:-1], d).__delitem__(keys[-1])
 
 
-def get_dict_from_array(array, conditions):
-    """Finds a dictionary in an array based on unqiue pairs of {key: value}.
-
-    The conditions argument is formatted:
-
-        {
-            key: value,
-            ...
-        }
-    """
-
-    # if isinstance(key, str):
-    #     d = [d for d in array if key in d and d[key] == value]
-    # else:
-    #     d = [d for d in array
-    #          if hasitem_nested(d, key) and getitem_nested(d, key) == value]
-
-    d = []
-    for item in array:
-        flags = []
-        for key, value in conditions.items():
-            key = key.split('.')
-            if len(key) == 1:
-                flag = key[0] in item and item[key[0]] == value
-            else:
-
-                flag = (hasitem_nested(item, key) and
-                        getitem_nested(item, key) == value)
-            flags.append(flag)
-        if all(flags):
-            d.append(item)
-
-    if d:
-        if len(d) == 1:
-            return d[0]
-        else:
-            raise ValueError(
-                "Multiple dicts found for key = {}, value = {}".format(
-                    keys, value))
-    else:
-        raise ValueError(
-            "Dict not found for key = {}, value = {}".format(key, value))
-
-
-def dict_from_dict_array(array, pivot_key):
-    """Converts an array of dictionaries to a dictionary based on a pivot key.
-    """
-
-    return {item[pivot_key]: item for item in array}
-
-
-def deep_diff(a, b, grab=[], options={'deleted', 'updated', 'created'},
+def deep_diff(a, b, options={'deleted', 'updated', 'created'}, grab=[],
               keep=0):
     """Computes a minimal MongoDB update recursively.
+
+    Args:
+        a (dict): old dictionary
+        b (dict): new dictionary
+        options (set): specifies the categories of difference to find
+        grab (list): keys
+        keep (int): binary flag to keep (1) or ignore (0) the keys specified
+
+    Example::
 
         a = {'a': 0, 'b': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
         b = {'a': 1, 'b': 1, 'c': {'d': 1, 'e': 3, 'y': 4}, 'y': '1'}
@@ -196,6 +175,10 @@ def deep_diff(a, b, grab=[], options={'deleted', 'updated', 'created'},
 
 def isiterable(iterable, ignorestr=True):
     """Check if an object is iterable, somewhat naively, but sufficiently.
+
+    Args:
+        iterable (object): object to check
+        ignorestr (bool): boolean flag to ignore strings
     """
 
     flag = hasattr(iterable, '__getitem__') or hasattr(iterable, '__iter__')
@@ -210,7 +193,10 @@ def isiterable(iterable, ignorestr=True):
 # -----------------------------------------------------------------------------
 
 def get_uri(config):
-    """Extracts a complete URI from a config dictionary..
+    """Extracts a complete URI from a config dictionary.
+
+    Args:
+        config (dict): config dictionary specying URI
     """
 
     # Check if complete URI is already specified
@@ -228,17 +214,25 @@ def get_uri(config):
 
 
 def get_update(
-        old, new, grab=['_id'], options={'deleted', 'updated', 'created'},
+        old, new, options={'deleted', 'updated', 'created'}, grab=['_id'],
         keep=0):
     """Computes a minimal MongoDB update recursively.
 
-    Note that only the '$set' and '$unset' update operators are considered.
+    Args:
+        old (dict): old dictionary
+        new (dict): new dictionary
+        options (set): specifies the categories of difference to find
+        grab (list): keys
+        keep (int): binary flag to keep (1) or ignore (0) the keys specified
+
+    Example::
 
         old = {'a': 0, 'b': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
         new = {'a': 1, 'b': 1, 'c': {'d': 1, 'e': 3, 'y': 4}, 'y': '1'}
 
         update = get_update(old, new)
 
+    Note that only the '$set' and '$unset' update operators are considered.
     """
 
     upset = {}
@@ -350,7 +344,7 @@ class Pretty(object):
 
 
 def sphinx_pretty(obj, name='obj'):
-    """Pretty dict embedding for Spinx (HTML).
+    """Pretty dict to RST.
     """
 
     pretty = Pretty(indent=2)
