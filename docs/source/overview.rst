@@ -65,10 +65,10 @@ This runs the tests in the tests directory, ensuring that binding works with you
 .. code-block:: js
 
    db.createUser({
-       'user': 'atgminimongoTester',
-       'pwd': 'atgminimongoTester',
+       'user': 'minimongoTester',
+       'pwd': 'minimongoTester',
        'roles':[
-           {'role': 'readWrite', 'db': 'atgminimongo_testing'}
+           {'role': 'readWrite', 'db': 'minimongo_testing'}
        ]
    })
 

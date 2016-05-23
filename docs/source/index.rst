@@ -1,5 +1,5 @@
 minimongo
-============
+=========
 
 This repository implements a lightweight ORM for interfacing efficiently and easily with MongoDB. The binding is done using :mod:`pymongo` under the hood, and allows recursive attribute style indexing for convenience.
 
