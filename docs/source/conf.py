@@ -99,7 +99,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'minimongo'
-copyright = '2016, ESPN ATG'
+copyright = '2016, James Williams'
 author = 'James Williams'
 
 # The version info for the project you're documenting, acts as replacement for
