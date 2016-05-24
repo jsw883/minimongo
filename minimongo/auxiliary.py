@@ -2,6 +2,8 @@
 Auxiliary functions for ORM.
 """
 
+from datetime import datetime
+
 from copy import deepcopy
 from functools import reduce  # Python 3
 
@@ -114,13 +116,13 @@ def delitem_nested(d, keys):
     reduce(dict.__getitem__, keys[:-1], d).__delitem__(keys[-1])
 
 
-def deep_diff(a, b, options={'deleted', 'updated', 'created'}, grab=[],
+def deep_diff(old, new, options={'deleted', 'updated', 'created'}, grab=[],
               keep=0):
-    """Computes a minimal MongoDB update recursively.
+    """Computes old minimal MongoDB update recursively.
 
     Args:
-        a (dict): old dictionary
-        b (dict): new dictionary
+        old (dict): old dictionary
+        new (dict): new dictionary
         options (set): specifies the categories of difference to find
         grab (list): keys
         keep (int): binary flag to keep (1) or ignore (0) the keys specified
@@ -130,48 +132,49 @@ def deep_diff(a, b, options={'deleted', 'updated', 'created'}, grab=[],
 
     Example::
 
-        a = {'a': 0, 'b': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
-        b = {'a': 1, 'b': 1, 'c': {'d': 1, 'e': 3, 'y': 4}, 'y': '1'}
+        old = {'old': 0, 'new': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
+        new = {'old': 1, 'new': 1, 'c': {'d': 1, 'e': 3, 'y': 4}, 'y': '1'}
 
-        diff = deep_diff(a, b)
+        diff = deep_diff(old, new)
 
     """
 
     summary = {}
 
     # Recursive method to obtain minimal update for each nested dictionary
-    def diff(a, b, keys):
+    def diff(old, new, keys):
 
-        a_keys = set(a.keys())
-        b_keys = set(b.keys())
+        a_keys = set(old.keys())
+        b_keys = set(new.keys())
 
         deleted = a_keys - b_keys if 'deleted' in options else set()
         if deleted:
             for key in deleted:
                 if xor(keep, key not in grab):
-                    setitem_nested(summary, ['deleted'] + keys + [key], a[key])
+                    setitem_nested(
+                        summary, ['deleted'] + keys + [key], old[key])
 
         matched = a_keys & b_keys
         if matched:
             for key in matched:
-                if isinstance(a[key], dict) and isinstance(b[key], dict):
-                    diff(a[key], b[key], keys + [key])
+                if isinstance(old[key], dict) and isinstance(new[key], dict):
+                    diff(old[key], new[key], keys + [key])
                 else:
                     if ('updated' in options and xor(keep, key not in grab) and
-                            a[key] != b[key]):
+                            old[key] != new[key]):
                         setitem_nested(
                             summary, ['updated'] + keys + [key],
                             {
-                                'old': a[key],
-                                'new': b[key],
+                                'old': old[key],
+                                'new': new[key],
                             })
 
         created = b_keys - a_keys if 'created' in options else set()
         if created:
             for key in created:
-                setitem_nested(summary, ['created'] + keys + [key], b[key])
+                setitem_nested(summary, ['created'] + keys + [key], new[key])
 
-    diff(a, b, [])
+    diff(old, new, [])
 
     return summary
 
@@ -292,6 +295,30 @@ def get_update(
         update['$set'] = upset  # Create or update key
     if unset:
         update['$unset'] = unset  # Delete key
+
+    return update
+
+
+def with_archive(old, diff, update):
+    """Modify update operator to archive update in MongoDB.
+
+    Args:
+        old (dict): dictionary being updated
+        diff (dict): diff summary
+        update (dict): update being applied
+
+    Returns:
+        dict: modified update operator to apply
+    """
+
+    archive = merge(diff, {
+        'time': datetime.utcnow()
+    })
+
+    if 'updates' in old:
+        update['$push'] = {'updates': archive}
+    else:
+        setitem_nested(update, ['$set', 'updates'], [archive])
 
     return update
 
