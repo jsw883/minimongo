@@ -58,7 +58,7 @@ class PyTestCommand(TestCommand):
 setup(
     # Package name, version, description, classifiers, and keywords
     name='minimongo',
-    version='0.2.0',
+    version='0.3.0',
     description='Lightweight ORM for MongoDB.',
     classifiers=[
         'Development Status :: 5 - Production/Stable',

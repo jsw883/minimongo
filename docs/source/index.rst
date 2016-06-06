@@ -14,6 +14,7 @@ Index
 
 .. toctree::
 
+   auxiliary
    repository
 
 * :ref:`genindex`
