@@ -13,6 +13,7 @@ Index
    overview
 
 .. toctree::
+   :maxdepth: 2
 
    auxiliary
    repository
