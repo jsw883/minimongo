@@ -42,6 +42,7 @@ def subset(d, keys, keep=1):
     """Subset a dictionary based on a list of keys.
 
     Args:
+        d (dict): dictionary to be subsetted
         keys (list): keys
         keep (int): binary flag to keep (1) or remove (0) the keys specified
 
@@ -49,21 +50,45 @@ def subset(d, keys, keep=1):
         dict: subsetted dictionary
     """
 
+    if not isinstance(keys, list):
+        keys = [keys]
+
     if keep == 0:
         return {key: value for key, value in d.items() if key not in keys}
     else:
         return {key: value for key, value in d.items() if key in keys}
 
 
+def getitems(d, keys):
+    """Get a list of values from a dictionary given a list of keys (ordered).
+
+    Args:
+        d (dict): dictionary to be subsetted
+        keys (list): keys
+
+    Returns:
+        list: values
+    """
+
+    if not isinstance(keys, list):
+        keys = [keys]
+
+    return [d[k] for k in keys]
+
+
 def hasitem_nested(d, keys):
     """Checks a nested dictionary given a list of keys to expand.
 
     Args:
-        keys (list): keys
+        d (dict): dictionary
+        keys (list): ordered list of keys to expand
 
     Returns:
         bool: if item exists
     """
+
+    if not isinstance(keys, list):
+        keys = [keys]
 
     if len(keys) > 1:
         if keys[0] in d:
@@ -78,11 +103,15 @@ def getitem_nested(d, keys):
     """Gets a value in a nested dictionary given a list of keys to expand.
 
     Args:
+        d (dict): dictionary
         keys (list): ordered list of keys to expand
 
     Returns:
         object: value to get from key
     """
+
+    if not isinstance(keys, list):
+        keys = [keys]
 
     return reduce(dict.__getitem__, keys, d)
 
@@ -91,9 +120,13 @@ def setitem_nested(d, keys, value):
     """Sets a value in a nested dictionary given a list of keys to expand.
 
     Args:
+        d (dict): dictionary
         keys (list): ordered list of keys to expand
         value (object): value to set at key
     """
+
+    if not isinstance(keys, list):
+        keys = [keys]
 
     if len(keys) > 1:
         key = keys[0]
@@ -114,20 +147,24 @@ def delitem_nested(d, keys):
     """Deletes a value in a nested dictionary given a list of keys to expand.
 
     Args:
+        d (dict): dictionary
         keys (list): ordered list of keys to expand
     """
+
+    if not isinstance(keys, list):
+        keys = [keys]
 
     reduce(dict.__getitem__, keys[:-1], d).__delitem__(keys[-1])
 
 
-def deep_diff(old, new, options={'deleted', 'updated', 'created'}, grab=[],
-              keep=0):
-    """Computes old minimal MongoDB update recursively.
+def deep_diff(
+        old, new, options={'deleted', 'updated', 'created'}, grab=[], keep=0):
+    """Computes deep difference between two dictionaries recursively.
 
     Args:
         old (dict): old dictionary
         new (dict): new dictionary
-        options (set): specifies the categories of difference to find
+        options (set): specifies categories of dictionary difference to find
         grab (list): keys
         keep (int): binary flag to keep (1) or ignore (0) the keys specified
 
@@ -136,12 +173,14 @@ def deep_diff(old, new, options={'deleted', 'updated', 'created'}, grab=[],
 
     Example::
 
-        old = {'old': 0, 'new': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
-        new = {'old': 1, 'new': 1, 'c': {'d': 1, 'e': 3, 'y': 4}, 'y': '1'}
+        old = {'a': 0, 'b': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
+        new = {'a': 1, 'b': 1, 'c': {'d': 1, 'e': 3, 'y': 4}, 'y': '1'}
 
         diff = deep_diff(old, new)
-
     """
+
+    if isinstance(grab, str):
+        grab = [grab]
 
     summary = {}
 
@@ -180,6 +219,198 @@ def deep_diff(old, new, options={'deleted', 'updated', 'created'}, grab=[],
 
     diff(old, new, [])
 
+    return summary
+
+
+# -----------------------------------------------------------------------------
+# Lists
+# -----------------------------------------------------------------------------
+
+def pivot_list_to_dict(s, pivots):
+    """Convert a list of dictionaries to a nested dictionary recursively.
+
+    Args:
+        s (list): iterable of dictionaries
+        pivots (list): ordered list of keys to pivot by sequentially
+
+    Returns:
+        dict: nested dictionary
+    """
+
+    key = pivots[0]
+
+    d = {}
+    for i in s:
+        v = i[key]
+        if v not in d:
+            d[v] = []
+        d[v].append(subset(i, key, 0))
+    for k, v in d.items():
+        if len(pivots) > 1:
+            d[k] = pivot_list_to_dict(v, pivots[1:])
+        else:
+            if len(d[k]) == 1:
+                d[k] = d[k][0]
+
+    return d
+
+
+def pivot_dict_to_list(d, pivots):
+    """Convert a nested dictionary to a list of dictionaries recursively.
+
+    Args:
+        d (dict): nested dictionary
+        pivots (list): ordered list of keys to pivot by sequentially
+
+    Returns:
+        list: iterable of dictionaries (ordered arbitrarily)
+    """
+
+    s = []
+    for k, v in d.items():
+        key = {pivots[0]: k}
+        if isinstance(v, list):
+            for i in v:
+                s.append(merge(i, key))
+        else:
+            if len(pivots) > 1:
+                s += [merge(w, key) for w in pivot_dict_to_list(v, pivots[1:])]
+            else:
+                s.append(merge(v, key))
+
+    return s
+
+
+def sort_dict_list_by_pivots(s, pivots):
+    """Sort a list of dictionaries by a list of pivot keys (ordered).
+
+    Args:
+        s (list): iterable of dictionaries
+        pivots (list): ordered list of keys to sort by sequentially
+
+    Returns:
+        list: sorted list of dictionaries
+    """
+
+    if not isinstance(pivots, list):
+        pivots = [pivots]
+
+    return sorted(s, key=lambda x: getitems(x, pivots))
+
+
+def sort_list_diff(old, new):
+    """Computes shallow difference between two lists (sortable).
+
+    Args:
+        old (list): old list (sortable)
+        new (list): new list (sortable)
+
+    Returns:
+        dict: difference summary
+    """
+
+    old = sorted(old)
+    new = sorted(new)
+
+    deleted = []
+    created = []
+
+    for v in old:
+        if v not in new:
+            deleted.append(v)
+
+    for v in new:
+        if v not in old:
+            created.append(v)
+
+    summary = {}
+    if deleted:
+        summary['deleted'] = deleted
+    if created:
+        summary['created'] = created
+
+    return summary
+
+
+def dict_list_diff(
+        old, new, pivots, choices={'deleted', 'changed', 'created'},
+        options={'deleted', 'updated', 'created'}, grab=[], keep=0):
+    """Computes deep difference between two lists of dictionaries recursively.
+
+    Args:
+        old (list): old list of dictionaries
+        new (list): new list of dictionaries
+        pivots (list): ordered list of keys to sort by sequentially
+        choices (set): specifies categories of list difference to find
+        options (set): specifies categories of dict difference to find
+        grab (list): keys
+        keep (int): binary flag to keep (1) or ignore (0) the keys specified
+
+    Returns:
+        list: difference summary
+
+    Example::
+
+        old = [
+            {'k': 0, 'a': 0},
+            {'k': 3, 'b': 1},
+            {'k': 2, 'c': 0},
+            {'k': 4, 'a': 0, 'b': 1, 'c': {'d': 2, 'e': 3, 'x': 4}, 'x': '0'}
+        ]
+        new = [
+            {'k': 1, 'a': 0},
+            {'k': 2, 'c': 0},
+            {'k': 3, 'b': 4},
+            {'k': 4, 'a': 1, 'b': 1, 'c': {'d': 1, 'e': 3, 'y': 4}, 'y': '1'}
+        ]
+        diff = dict_list_diff(old, new, 'k')
+    """
+
+    if not isinstance(pivots, list):
+        pivots = [pivots]
+
+    old = sorted(old, key=lambda x: getitems(x, pivots))
+    new = sorted(new, key=lambda x: getitems(x, pivots))
+
+    deleted = []
+    changed = []
+    created = []
+
+    i = 0
+    j = 0
+    while i < len(old) and j < len(new):
+
+        old_values = getitems(old[i], pivots)
+        new_values = getitems(new[j], pivots)
+
+        if old_values == new_values:  # unchanged or changed
+            diff = deep_diff(old[i], new[j], options, grab, keep)
+            if diff and 'changed' in choices:  # changed
+                changed.append(merge(diff, subset(old[i], pivots)))
+            i += 1
+            j += 1
+        elif old_values < new_values:  # deleted
+            if 'deleted' in choices:
+                deleted.append(old[i])
+            i += 1
+        else:  # created
+            if 'created' in choices:
+                created.append(new[j])
+            j += 1
+
+    for k in range(i, len(old)):  # remaining deleted
+        deleted.append(old[k])
+
+    for k in range(j, len(new)):  # remaining created
+        created.append(new[k])
+
+    summary = {}
+    if deleted:
+        summary['deleted'] = deleted
+    if changed:
+        summary['changed'] = changed
+    if created:
+        summary['created'] = created
     return summary
 
 
