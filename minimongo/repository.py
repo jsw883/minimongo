@@ -277,13 +277,14 @@ class Model(AttrDictionary, metaclass=MetaModel):
 
         obj = self.collection.find_one(*args, **kwargs)
 
+        query = args[0] if len(args) != 0 else {}
         if obj is not None:
             self._logger.debug("%s returned.", obj)
             self._logger.info("Query %s succeeded, {{'_id': ObjectID('%s')}} "
-                              "returned.", args[0], obj['_id'])
+                              "returned.", query, obj['_id'])
             return self(obj)
         else:
-            self._logger.info("Query %s failed, object not found.", args[0])
+            self._logger.info("Query %s failed, object not found.", query)
             return None
 
     # -------------------------------------------------------------------------

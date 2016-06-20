@@ -237,6 +237,9 @@ def pivot_list_to_dict(s, pivots):
         dict: nested dictionary
     """
 
+    if not isinstance(pivots, list):
+        pivots = [pivots]
+
     key = pivots[0]
 
     d = {}
@@ -265,6 +268,9 @@ def pivot_dict_to_list(d, pivots):
     Returns:
         list: iterable of dictionaries (ordered arbitrarily)
     """
+
+    if not isinstance(pivots, list):
+        pivots = [pivots]
 
     s = []
     for k, v in d.items():
@@ -386,7 +392,7 @@ def dict_list_diff(
         if old_values == new_values:  # unchanged or changed
             diff = deep_diff(old[i], new[j], options, grab, keep)
             if diff and 'changed' in choices:  # changed
-                changed.append(merge(diff, subset(old[i], pivots)))
+                changed.append(merge(diff, {'new': new[i]}))
             i += 1
             j += 1
         elif old_values < new_values:  # deleted
