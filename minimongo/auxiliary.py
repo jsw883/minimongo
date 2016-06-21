@@ -226,12 +226,13 @@ def deep_diff(
 # Lists
 # -----------------------------------------------------------------------------
 
-def pivot_list_to_dict(s, pivots):
+def pivot_list_to_dict(s, pivots, types=None):
     """Convert a list of dictionaries to a nested dictionary recursively.
 
     Args:
         s (list): iterable of dictionaries
         pivots (list): ordered list of keys to pivot by sequentially
+        types (list): ordered list of types to convert pivots
 
     Returns:
         dict: nested dictionary
@@ -240,17 +241,21 @@ def pivot_list_to_dict(s, pivots):
     if not isinstance(pivots, list):
         pivots = [pivots]
 
+    if not isinstance(types, list):
+        types = [types for pivot in pivots]
+
     key = pivots[0]
 
     d = {}
     for i in s:
-        v = i[key]
+        v = types(i[key]) if types else i[key]
         if v not in d:
             d[v] = []
         d[v].append(subset(i, key, 0))
     for k, v in d.items():
         if len(pivots) > 1:
-            d[k] = pivot_list_to_dict(v, pivots[1:])
+            d[k] = pivot_list_to_dict(
+                v, pivots[1:], types[1:] if types else None)
         else:
             if len(d[k]) == 1:
                 d[k] = d[k][0]
@@ -258,12 +263,13 @@ def pivot_list_to_dict(s, pivots):
     return d
 
 
-def pivot_dict_to_list(d, pivots):
+def pivot_dict_to_list(d, pivots, types=None):
     """Convert a nested dictionary to a list of dictionaries recursively.
 
     Args:
         d (dict): nested dictionary
         pivots (list): ordered list of keys to pivot by sequentially
+        types (list): ordered list of types to convert pivots
 
     Returns:
         list: iterable of dictionaries (ordered arbitrarily)
@@ -272,15 +278,20 @@ def pivot_dict_to_list(d, pivots):
     if not isinstance(pivots, list):
         pivots = [pivots]
 
+    if types and not isinstance(types, list):
+        types = [types for pivot in pivots]
+
     s = []
     for k, v in d.items():
-        key = {pivots[0]: k}
+        key = {pivots[0]: types[0](k) if types else k}
         if isinstance(v, list):
             for i in v:
                 s.append(merge(i, key))
         else:
             if len(pivots) > 1:
-                s += [merge(w, key) for w in pivot_dict_to_list(v, pivots[1:])]
+                s += [
+                    merge(w, key) for w in pivot_dict_to_list(
+                        v, pivots[1:], types[1:] if types else None)]
             else:
                 s.append(merge(v, key))
 
