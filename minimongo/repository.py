@@ -6,7 +6,7 @@ The binding is done using :mod:`pymongo` under the hood, and provides recursive
 attribute style indexing using :class:'AttrDictionary'.
 """
 
-from .auxiliary import *
+from .auxiliary import *  # should expand
 
 import pymongo
 import logging
@@ -286,6 +286,13 @@ class Model(AttrDictionary, metaclass=MetaModel):
         else:
             self._logger.info("Query %s failed, object not found.", query)
             return None
+
+    @classmethod
+    def count(self, *args, **kwargs):
+        """Count objects in MongoDB.
+        """
+
+        return self.collection.count(*args, **kwargs)
 
     # -------------------------------------------------------------------------
     # Object functionality
