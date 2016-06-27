@@ -248,7 +248,7 @@ def pivot_list_to_dict(s, pivots, types=None):
 
     d = {}
     for i in s:
-        v = types(i[key]) if types else i[key]
+        v = types[0](i[key]) if types else i[key]
         if v not in d:
             d[v] = []
         d[v].append(subset(i, key, 0))
